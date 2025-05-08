@@ -1,6 +1,7 @@
 import streamlit as st
 import os
 import fitz  # PyMuPDF
+import base64
 from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_openai import OpenAIEmbeddings
 from langchain.vectorstores import FAISS
@@ -24,6 +25,14 @@ def load_default_article():
     vs = FAISS.from_documents(docs, OpenAIEmbeddings(model="text-embedding-ada-002"))
     return text, vs
 
+# ✅ New: Function to display the PDF as a scrollable viewer
+def display_pdf(file_path):
+    with open(file_path, "rb") as f:
+        base64_pdf = base64.b64encode(f.read()).decode("utf-8")
+    pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="800px" type="application/pdf"></iframe>'
+    st.components.v1.html(pdf_display, height=800)
+
+# === Load and cache default article if not already
 if "default_text" not in st.session_state:
     st.session_state["default_text"], st.session_state["default_vs"] = load_default_article()
     st.session_state["default_chain"] = ConversationalRetrievalChain.from_llm(
@@ -100,8 +109,8 @@ with tab2:
 
 # --- 📄 Default Article ---
 with tab3:
-    st.header("📄 Default Article Content")
-    st.markdown(st.session_state["default_text"][:3000])  # Preview; you can use expander or scrolling text
+    st.header("📄 Default Article (Original Format)")
+    display_pdf(DEFAULT_PDF_PATH)  # Preview; you can use expander or scrolling text
 
 # --- 🎓 Tutorial Q&A ---
 with tab4:
