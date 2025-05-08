@@ -12,7 +12,7 @@ from langchain.chains import ConversationalRetrievalChain
 os.environ["OPENAI_API_KEY"] = st.secrets["OPENAI_API_KEY"]
 
 # === Load default article ===
-DEFAULT_PDF_PATH = "data/default_article.pdf"
+DEFAULT_PDF_PATH = "data/Retrieval-Augmented Generation (RAG) from basics to advanced _ by Tejpal Kumawat _ Medium.pdf"
 
 @st.cache_resource
 def load_default_article():
