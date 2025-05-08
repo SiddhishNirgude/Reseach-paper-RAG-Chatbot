@@ -72,10 +72,10 @@ with tab1:
             st.session_state.pop(key, None)
 
     if st.button("Go to Chat"):
-    if "uploaded_pdf" in st.session_state:
-        st.rerun()  # ✅ Correct method
-    else:
-        st.warning("Please upload a PDF first.")
+        if "uploaded_pdf" in st.session_state:
+            st.rerun()  # ✅ Correct method
+        else:
+            st.warning("Please upload a PDF first.")
 
 # --- 💬 Chatbot ---
 with tab2:
