@@ -140,9 +140,15 @@ with tab2:
             st.rerun()
 
 # --- 📄 Default Article ---
+# --- 📄 Default Article ---
 with tab3:
     st.header("📄 Default Article (Original Format)")
-    display_pdf(DEFAULT_PDF_PATH)  # Preview; you can use expander or scrolling text
+
+    st.markdown("""
+📖 [View Original Article on Medium](https://medium.com/@tejpal.abhyuday/retrieval-augmented-generation-rag-from-basics-to-advanced-a2b068fd576c)
+""")
+
+    display_pdf(DEFAULT_PDF_PATH)
 
 # --- 🎓 Tutorial Q&A ---
 with tab4:
