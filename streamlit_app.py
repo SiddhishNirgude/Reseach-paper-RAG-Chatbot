@@ -27,10 +27,21 @@ def load_default_article():
 
 # ✅ New: Function to display the PDF as a scrollable viewer
 def display_pdf(file_path):
-    with open(file_path, "rb") as f:
-        base64_pdf = base64.b64encode(f.read()).decode("utf-8")
-    pdf_display = f'<iframe src="data:application/pdf;base64,{base64_pdf}" width="100%" height="800px" type="application/pdf"></iframe>'
-    st.components.v1.html(pdf_display, height=800)
+    try:
+        with open(file_path, "rb") as f:
+            base64_pdf = base64.b64encode(f.read()).decode("utf-8")
+        pdf_display = f"""
+        <iframe 
+            src="data:application/pdf;base64,{base64_pdf}" 
+            width="100%" height="800px" 
+            style="border: none;"
+            type="application/pdf">
+        </iframe>
+        """
+        st.components.v1.html(pdf_display, height=800)
+    except Exception as e:
+        st.error("❌ Could not display the PDF.")
+        st.code(str(e))
 
 # === Load and cache default article if not already
 if "default_text" not in st.session_state:
