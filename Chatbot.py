@@ -43,13 +43,12 @@ st.markdown(
 
 # === Step 1: Extract text from PDF ===
 def extract_text_from_pdf(pdf_file):
-    pdf_file.seek(0)  # 🔥 Reset the pointer to the beginning
+    pdf_file.seek(0)
     doc = fitz.open(stream=pdf_file.read(), filetype="pdf")
     text = ""
     for page in doc:
         text += page.get_text()
     return text
-
 
 
 # === Step 2: Split text into chunks ===
@@ -72,6 +71,7 @@ def build_conversational_chain(vectorstore):
         memory_key="chat_history",
         return_messages=True
     )
+    st.session_state["memory"] = memory
     conversation = ConversationalRetrievalChain.from_llm(
         llm=llm,
         retriever=vectorstore.as_retriever(search_type="similarity", search_kwargs={"k": 3}),
@@ -80,9 +80,16 @@ def build_conversational_chain(vectorstore):
     return conversation
 
 
-# === After defining all your functions ===
-
+# === Main Logic ===
 if "uploaded_pdf" in st.session_state:
+    st.write(f"📄 Currently using: `{st.session_state['uploaded_pdf'].name}`")
+
+    # Reset session button
+    if st.button("🔁 Reset Chat Session"):
+        for key in ["vectorstore", "conversation_chain", "messages", "memory"]:
+            st.session_state.pop(key, None)
+        st.rerun()
+
     pdf_file = st.session_state["uploaded_pdf"]
 
     if "vectorstore" not in st.session_state:
@@ -97,7 +104,6 @@ if "uploaded_pdf" in st.session_state:
 
     conversation_chain = st.session_state["conversation_chain"]
 
-    # Initialize chat history if needed
     if "messages" not in st.session_state:
         st.session_state.messages = []
 
@@ -111,7 +117,7 @@ if "uploaded_pdf" in st.session_state:
         st.chat_message("user").markdown(f"<span style='color:{font_color}'>{prompt}</span>", unsafe_allow_html=True)
         st.session_state.messages.append({"role": "user", "content": prompt})
 
-        # 🔍 Bot response
+        # Bot response
         response = conversation_chain.invoke({"question": prompt})
         response_text = f"Bot: {response['answer']}"
 
@@ -122,9 +128,3 @@ if "uploaded_pdf" in st.session_state:
 
 else:
     st.warning("Please upload a PDF from the homepage to begin.")
-
-
-
-
-
-
