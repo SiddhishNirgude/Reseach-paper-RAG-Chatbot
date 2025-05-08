@@ -80,16 +80,20 @@ with tab1:
             st.warning("Please upload a PDF first.")
 
 # --- 💬 Chatbot ---
+# --- 💬 Chatbot ---
 with tab2:
     st.title("Ask Your Paper")
+
+    # Case 1: User uploaded a custom PDF
     if "uploaded_pdf" in st.session_state:
-        pdf = st.session_state["uploaded_pdf"]
+        pdf_file = st.session_state["uploaded_pdf"]
+        st.write(f"📄 Currently using: `{pdf_file.name}`")
 
         if "vectorstore" not in st.session_state:
-            pdf.seek(0)
-            doc = fitz.open(stream=pdf.read(), filetype="pdf")
-            full_text = "".join([p.get_text() for p in doc])
-            docs = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=100).create_documents([full_text])
+            pdf_file.seek(0)
+            doc = fitz.open(stream=pdf_file.read(), filetype="pdf")
+            text = "".join([page.get_text() for page in doc])
+            docs = RecursiveCharacterTextSplitter(chunk_size=500, chunk_overlap=100).create_documents([text])
             st.session_state["vectorstore"] = FAISS.from_documents(docs, OpenAIEmbeddings(model="text-embedding-ada-002"))
 
         if "conversation_chain" not in st.session_state:
@@ -99,26 +103,41 @@ with tab2:
                 memory=ConversationBufferMemory(memory_key="chat_history", return_messages=True)
             )
 
-        st.write(f"📄 Currently using: `{pdf.name}`")
-        if st.button("Reset Chat"):
-            for key in ["vectorstore", "conversation_chain", "messages", "memory"]:
-                st.session_state.pop(key, None)
-            st.experimental_rerun()
-
         if "messages" not in st.session_state:
             st.session_state["messages"] = []
 
+        # Display chat history
         for msg in st.session_state["messages"]:
             with st.chat_message(msg["role"]):
                 st.markdown(msg["content"])
 
-        user_input = st.chat_input("Ask your PDF")
-        if user_input:
-            st.session_state["messages"].append({"role": "user", "content": user_input})
-            reply = st.session_state["conversation_chain"].invoke({"question": user_input})
-            st.session_state["messages"].append({"role": "assistant", "content": reply["answer"]})
+        # User input
+        user_prompt = st.chat_input("Ask something about your uploaded PDF")
+        if user_prompt:
+            st.session_state["messages"].append({"role": "user", "content": user_prompt})
+            response = st.session_state["conversation_chain"].invoke({"question": user_prompt})
+            st.session_state["messages"].append({"role": "assistant", "content": response['answer']})
+            st.rerun()
+
+    # Case 2: No uploaded file → use default article
     else:
-        st.warning("Please upload a PDF from the Home tab.")
+        st.info("No file uploaded. Chatting with the default tutorial article instead.")
+
+        if "messages" not in st.session_state:
+            st.session_state["messages"] = []
+
+        # Display chat history
+        for msg in st.session_state["messages"]:
+            with st.chat_message(msg["role"]):
+                st.markdown(msg["content"])
+
+        # User input
+        user_prompt = st.chat_input("Ask something about the default tutorial article")
+        if user_prompt:
+            st.session_state["messages"].append({"role": "user", "content": user_prompt})
+            response = st.session_state["default_chain"].invoke({"question": user_prompt})
+            st.session_state["messages"].append({"role": "assistant", "content": response['answer']})
+            st.rerun()
 
 # --- 📄 Default Article ---
 with tab3:
