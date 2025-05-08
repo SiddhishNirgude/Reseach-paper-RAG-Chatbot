@@ -52,13 +52,14 @@ if "default_text" not in st.session_state:
         memory=ConversationBufferMemory(memory_key="chat_history", return_messages=True)
     )
 
-# === Tabs ===
-tab1, tab2, tab3, tab4 = st.tabs([
-    "🏠 Home",
-    "💬 Chatbot",
-    "📄 Default Article",
-    "🎓 Tutorial Q&A"
-])
+# ✅ Track which tab to display on rerun
+if "active_tab" not in st.session_state:
+    st.session_state["active_tab"] = "🏠 Home"
+
+# === Tabs with dynamic tab switch
+tabs = ["🏠 Home", "💬 Chatbot", "📄 Default Article", "🎓 Tutorial Q&A"]
+tab_index = tabs.index(st.session_state["active_tab"])
+tab1, tab2, tab3, tab4 = st.tabs(tabs)
 
 # --- 🏠 Home ---
 with tab1:
@@ -73,7 +74,8 @@ with tab1:
 
     if st.button("Go to Chat"):
         if "uploaded_pdf" in st.session_state:
-            st.rerun()  # ✅ Correct method
+            st.session_state["active_tab"] = "💬 Chatbot"
+            st.rerun()
         else:
             st.warning("Please upload a PDF first.")
 
