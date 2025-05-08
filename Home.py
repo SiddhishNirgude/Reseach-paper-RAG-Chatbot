@@ -43,7 +43,14 @@ st.markdown("""<div style="font-size: 18px; color: {font_color};">Upload a PDF</
 uploaded_file = st.file_uploader("", type="pdf")
 
 if uploaded_file:
-    st.session_state["uploaded_pdf"] = uploaded_file
+    # If it's a new file (by name), reset the relevant session states
+    if (
+        "uploaded_pdf" not in st.session_state or
+        uploaded_file.name != st.session_state["uploaded_pdf"].name
+    ):
+        st.session_state["uploaded_pdf"] = uploaded_file
+        for key in ["vectorstore", "conversation_chain", "messages", "memory"]:
+            st.session_state.pop(key, None)
 
 st.write("")
 
